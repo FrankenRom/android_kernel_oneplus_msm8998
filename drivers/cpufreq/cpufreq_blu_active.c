@@ -1129,7 +1129,7 @@ static struct cpufreq_blu_active_tunables *alloc_tunable(
 	tunables->min_sample_time = DEFAULT_MIN_SAMPLE_TIME;
 	tunables->timer_rate = usecs_to_jiffies(DEFAULT_TIMER_RATE);
 	tunables->timer_slack_val = usecs_to_jiffies(DEFAULT_TIMER_SLACK);
-	tunables->fastlane = false;
+	tunables->fastlane = true;
 	tunables->fastlane_threshold = 50;
 
 	spin_lock_init(&tunables->target_loads_lock);
