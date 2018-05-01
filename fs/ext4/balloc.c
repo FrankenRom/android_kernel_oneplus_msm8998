@@ -320,7 +320,6 @@ static ext4_fsblk_t ext4_valid_block_bitmap(struct super_block *sb,
 	struct ext4_sb_info *sbi = EXT4_SB(sb);
 	ext4_grpblk_t offset;
 	ext4_grpblk_t next_zero_bit;
-	ext4_grpblk_t max_bit = EXT4_CLUSTERS_PER_GROUP(sb);
 	ext4_fsblk_t blk;
 	ext4_fsblk_t group_first_block;
 
@@ -338,8 +337,7 @@ static ext4_fsblk_t ext4_valid_block_bitmap(struct super_block *sb,
 	/* check whether block bitmap block number is set */
 	blk = ext4_block_bitmap(sb, desc);
 	offset = blk - group_first_block;
-	if (offset < 0 || EXT4_B2C(sbi, offset) >= max_bit ||
-	    !ext4_test_bit(EXT4_B2C(sbi, offset), bh->b_data))
+	if (!ext4_test_bit(EXT4_B2C(sbi, offset), bh->b_data)) {
 		/* bad block bitmap */
 		pr_err("ext4_valid_block_bitmap: ext4_block_bitmap: bad block bitmap!\n");
 		return blk;
@@ -348,8 +346,7 @@ static ext4_fsblk_t ext4_valid_block_bitmap(struct super_block *sb,
 	/* check whether the inode bitmap block number is set */
 	blk = ext4_inode_bitmap(sb, desc);
 	offset = blk - group_first_block;
-	if (offset < 0 || EXT4_B2C(sbi, offset) >= max_bit ||
-	    !ext4_test_bit(EXT4_B2C(sbi, offset), bh->b_data))
+	if (!ext4_test_bit(EXT4_B2C(sbi, offset), bh->b_data)) {
 		/* bad block bitmap */
 		pr_err("ext4_valid_block_bitmap: ext4_inode_bitmap: bad block bitmap!\n");
 		return blk;
@@ -358,9 +355,6 @@ static ext4_fsblk_t ext4_valid_block_bitmap(struct super_block *sb,
 	/* check whether the inode table block number is set */
 	blk = ext4_inode_table(sb, desc);
 	offset = blk - group_first_block;
-	if (offset < 0 || EXT4_B2C(sbi, offset) >= max_bit ||
-	    EXT4_B2C(sbi, offset + sbi->s_itb_per_group) >= max_bit)
-		return blk;
 	next_zero_bit = ext4_find_next_zero_bit(bh->b_data,
 			EXT4_B2C(sbi, offset + EXT4_SB(sb)->s_itb_per_group),
 			EXT4_B2C(sbi, offset));
@@ -428,7 +422,6 @@ struct buffer_head *
 ext4_read_block_bitmap_nowait(struct super_block *sb, ext4_group_t block_group)
 {
 	struct ext4_group_desc *desc;
-	struct ext4_sb_info *sbi = EXT4_SB(sb);
 	struct buffer_head *bh;
 	ext4_fsblk_t bitmap_blk;
 	int err;
@@ -437,12 +430,6 @@ ext4_read_block_bitmap_nowait(struct super_block *sb, ext4_group_t block_group)
 	if (!desc)
 		return ERR_PTR(-EFSCORRUPTED);
 	bitmap_blk = ext4_block_bitmap(sb, desc);
-	if ((bitmap_blk <= le32_to_cpu(sbi->s_es->s_first_data_block)) ||
-	    (bitmap_blk >= ext4_blocks_count(sbi->s_es))) {
-		ext4_error(sb, "Invalid block bitmap block %llu in "
-			   "block_group %u", bitmap_blk, block_group);
-		return ERR_PTR(-EFSCORRUPTED);
-	}
 	bh = sb_getblk(sb, bitmap_blk);
 	if (unlikely(!bh)) {
 		ext4_error(sb, "Cannot get buffer for block bitmap - "
@@ -905,4 +892,3 @@ ext4_fsblk_t ext4_inode_to_goal_block(struct inode *inode)
 		colour = (current->pid % 16) * ((last_block - bg_start) / 16);
 	return bg_start + colour;
 }
-
