@@ -4250,7 +4250,6 @@ static void sctp_shutdown(struct sock *sk, int how)
 }
 
 /* 7.2.1 Association Status (SCTP_STATUS)
-
  * Applications can retrieve current status information about an
  * association, including association state, peer receiver window size,
  * number of unacked data chunks, and number of data chunks pending
@@ -4463,6 +4462,7 @@ int sctp_do_peeloff(struct sock *sk, sctp_assoc_t id, struct socket **sockp)
 
 	/* Do not peel off from one netns to another one. */
 	if (!net_eq(current->nsproxy->net_ns, sock_net(sk)))
+
 		return -EINVAL;
 
 	if (!asoc)
@@ -5111,8 +5111,6 @@ static int sctp_getsockopt_adaptation_layer(struct sock *sk, int len,
  *   specify a default set of parameters that would normally be supplied
  *   through the inclusion of ancillary data.  This socket option allows
  *   such an application to set the default sctp_sndrcvinfo structure.
-
-
  *   The application that wishes to use this socket option simply passes
  *   in to this call the sctp_sndrcvinfo structure defined in Section
  *   5.2.2) The input parameters accepted by this call include
